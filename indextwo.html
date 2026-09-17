@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Koalau & Eucalylee 共用心情日記</title>
+    <!-- Tailwind CSS (簡化樣式) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <style>
+        body { background-color: #faf7f2; }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body class="text-slate-800 min-h-screen p-4 md:p-8">
+
+    <div class="max-w-4xl mx-auto">
+        <!-- 標頭 -->
+        <header class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-slate-800">🐨 🌿 日常心情隨手記</h1>
+            <p class="text-slate-500 text-sm mt-2">跨裝置雲端共用面板</p>
+        </header>
+
+        <!-- 區塊 1：登入介面 (未登入時顯示) -->
+        <div id="auth-section" class="max-w-md mx-auto bg-white rounded-3xl p-6 shadow-sm border border-slate-100 mb-8">
+            <h2 class="text-xl font-bold mb-4 text-center">🔐 登入共用帳號</h2>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-bold mb-1">電郵 (Email)</label>
+                    <input type="email" id="login-email" class="w-full px-4 py-2 border rounded-xl" placeholder="your-email@example.com">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold mb-1">密碼</label>
+                    <input type="password" id="login-pass" class="w-full px-4 py-2 border rounded-xl">
+                </div>
+                <button id="login-btn" class="w-full py-3 bg-amber-500 text-white font-bold rounded-xl hover:bg-amber-600 transition">
+                    登入網站
+                </button>
+            </div>
+        </div>
+
+        <!-- 區塊 2：主頁面 (登入後顯示) -->
+        <div id="app-section" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <!-- 表單區 -->
+            <div class="lg:col-span-5">
+                <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 sticky top-8 space-y-5">
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs text-slate-400">登入為: <span id="user-email-display" class="font-bold"></span></span>
+                        <button id="logout-btn" class="text-xs bg-rose-100 text-rose-600 px-3 py-1 rounded-full font-bold">登出</button>
+                    </div>
+
+                    <h2 class="text-xl font-bold text-slate-800">✍️ 新增心情記錄</h2>
+
+                    <form id="diaryForm" class="space-y-4">
+                        <!-- 1. 姓名 (二選一) -->
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-1">紀錄者</label>
+                            <select id="username" class="w-full px-4 py-2.5 rounded-xl border bg-slate-50 font-bold" required>
+                                <option value="Koalau">🐨 Koalau</option>
+                                <option value="Eucalylee">🌿 Eucalylee</option>
+                            </select>
+                        </div>
+
+                        <!-- 2. 心情 (10 種選項) -->
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-1">當下心情</label>
+                            <select id="mood" class="w-full px-4 py-2.5 rounded-xl border bg-slate-50 font-bold" required>
+                                <option value="😊 開心">😊 開心</option>
+                                <option value="🎉 興奮">🎉 興奮</option>
+                                <option value="😭 難過">😭 難過</option>
+                                <option value="😞 失望">😞 失望</option>
+                                <option value="😡 生氣">😡 生氣</option>
+                                <option value="😤 不耐煩">😤 不耐煩</option>
+                                <option value="😴 疲累">😴 疲累</option>
+                                <option value="🙏 感恩">🙏 感恩</option>
+                                <option value="😌 平靜">😌 平靜</option>
+                                <option value="😟 憂慮">😟 憂慮</option>
+                            </select>
+                        </div>
+
+                        <!-- 日期 -->
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-1">日期與時間</label>
+                            <input type="datetime-local" id="datetime" class="w-full px-4 py-2.5 rounded-xl border bg-slate-50" required>
+                        </div>
+
+                        <!-- 內容 -->
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-1">心情記事</label>
+                            <textarea id="note" rows="3" class="w-full px-4 py-2.5 rounded-xl border bg-slate-50" placeholder="寫下發生的事情..." required></textarea>
+                        </div>
+
+                        <button type="submit" class="w-full py-3 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl shadow-md transition">
+                            ☁️ 發布至雲端面板
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- 歷史紀錄面板 -->
+            <div class="lg:col-span-7">
+                <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 min-h-[500px]">
+                    <h2 class="text-xl font-bold text-slate-800 mb-4 pb-3 border-b">📜 歷史紀錄面板（依日期排序）</h2>
+                    <div id="cardList" class="space-y-4">
+                        <!-- 資料會動態由 Firestore 渲染於此 -->
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- 💡 Firebase SDK 載入與初始化區塊 -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // 🔑 找到這裡！用你在 Firebase 後台取得的 firebaseConfig 取代這一段！
+const firebaseConfig = {
+  apiKey: "AIzaSyBoAU0DvnxFtsB6LGm4a-_6hibFmUM2D0o",
+  authDomain: "longd-9f822.firebaseapp.com",
+  projectId: "longd-9f822",
+  storageBucket: "longd-9f822.firebasestorage.app",
+  messagingSenderId: "487924930689",
+  appId: "1:487924930689:web:c7105404db310abcf89580"
+};
+        // 初始化
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const logsRef = collection(db, "diaryLogs");
+
+        // 自動寫入當前時間
+        const now = new Date();
+        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+        document.getElementById('datetime').value = now.toISOString().slice(0, 16);
+
+        // 1. 監聽登入狀態
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                document.getElementById('auth-section').classList.add('hidden');
+                document.getElementById('app-section').classList.remove('hidden');
+                document.getElementById('user-email-display').innerText = user.email;
+                listenToLogs(); // 啟動雲端實時監聽
+            } else {
+                document.getElementById('auth-section').classList.remove('hidden');
+                document.getElementById('app-section').classList.add('hidden');
+            }
+        });
+
+        // 2. 登入按鈕
+        document.getElementById('login-btn').addEventListener('click', async () => {
+            const email = document.getElementById('login-email').value;
+            const pass = document.getElementById('login-pass').value;
+            try {
+                await signInWithEmailAndPassword(auth, email, pass);
+            } catch (err) {
+                alert("登入失敗：" + err.message);
+            }
+        });
+
+        // 3. 登出按鈕
+        document.getElementById('logout-btn').addEventListener('click', () => signOut(auth));
+
+        // 4. 新增紀錄至 Firestore 雲端資料庫
+        document.getElementById('diaryForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const mood = document.getElementById('mood').value;
+            const datetime = document.getElementById('datetime').value;
+            const note = document.getElementById('note').value;
+
+            try {
+                await addDoc(logsRef, {
+                    username,
+                    mood,
+                    datetime,
+                    note,
+                    createdAt: new Date()
+                });
+                document.getElementById('note').value = '';
+            } catch (err) {
+                alert("寫入失敗：" + err.message);
+            }
+        });
+
+        // 5. 實時連線 Firestore（自動排序與更新）
+        function listenToLogs() {
+            // 依日期時間 (datetime) 降序排序（最新在上面）
+            const q = query(logsRef, orderBy("datetime", "desc"));
+            
+            onSnapshot(q, (snapshot) => {
+                const list = document.getElementById('cardList');
+                list.innerHTML = '';
+
+                if (snapshot.empty) {
+                    list.innerHTML = '<div class="text-center text-slate-400 py-8">雲端目前還沒有任何紀錄喔！</div>';
+                    return;
+                }
+
+                snapshot.forEach((docSnap) => {
+                    const data = docSnap.data();
+                    const id = docSnap.id;
+
+                    const item = document.createElement('div');
+                    item.className = 'p-4 rounded-2xl border bg-slate-50 relative';
+                    item.innerHTML = `
+                        <button onclick="deleteLog('${id}')" class="absolute top-3 right-3 text-rose-500 hover:text-rose-700 text-xs font-bold">刪除</button>
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="font-bold ${data.username === 'Koalau' ? 'text-amber-800' : 'text-emerald-800'}">
+                                ${data.username === 'Koalau' ? '🐨 Koalau' : '🌿 Eucalylee'}
+                            </span>
+                            <span class="text-xs bg-white px-2 py-1 rounded-md border">${data.mood}</span>
+                            <span class="text-xs text-slate-400">${data.datetime.replace('T', ' ')}</span>
+                        </div>
+                        <p class="text-sm text-slate-700 whitespace-pre-line">${escapeHtml(data.note)}</p>
+                    `;
+                    list.appendChild(item);
+                });
+            });
+        }
+
+        // 6. 刪除雲端紀錄
+        window.deleteLog = async (id) => {
+            if (confirm("確定要刪除這筆雲端紀錄嗎？")) {
+                await deleteDoc(doc(db, "diaryLogs", id));
+            }
+        };
+
+        function escapeHtml(str) {
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        }
+    </script>
+</body>
+</html>
